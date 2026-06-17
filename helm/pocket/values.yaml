@@ -21,11 +21,11 @@ postgres:
   database: pocket
   user: pocket_user
   password: pocket_17f3a2e91c4b
-  dataPath: /STORAGE/pocket/postgres
+  dataPath: /DATA/AppData/pocket/postgres
   storageSize: 2Gi
 
 app:
-  dataPath: /STORAGE/pocket/artifacts
+  dataPath: /DATA/AppData/pocket/artifacts
   storageSize: 5Gi
 
 # Set to a strong secret in production

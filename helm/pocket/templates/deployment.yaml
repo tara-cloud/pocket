@@ -58,9 +58,20 @@ spec:
             periodSeconds: 10
       volumes:
         - name: pgdata
-          hostPath:
-            path: {{ .Values.postgres.dataPath }}
-            type: DirectoryOrCreate
+          persistentVolumeClaim:
+            claimName: pocket-pgdata
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pocket-pgdata
+  namespace: pocket
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: {{ .Values.postgres.storageSize }}
 ---
 apiVersion: v1
 kind: Service
