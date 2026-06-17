@@ -1,0 +1,6 @@
+apiVersion: v2
+name: pocket
+description: Pocket — self-hosted artifact registry and OTA firmware manager for Tara devices
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

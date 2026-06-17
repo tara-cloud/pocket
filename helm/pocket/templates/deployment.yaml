@@ -1,0 +1,213 @@
+---
+# ── Namespace ─────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pocket
+---
+# ── Secret ────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pocket-secrets
+  namespace: pocket
+type: Opaque
+stringData:
+  POSTGRES_PASSWORD: {{ .Values.postgres.password | quote }}
+  DATABASE_URL: {{ printf "host=pocket-postgres port=5432 user=%s password=%s dbname=%s sslmode=disable" .Values.postgres.user .Values.postgres.password .Values.postgres.database | quote }}
+  POCKET_MASTER_KEY: {{ .Values.masterKey | quote }}
+---
+# ── PostgreSQL ────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-postgres
+  namespace: pocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pocket-postgres
+  template:
+    metadata:
+      labels:
+        app: pocket-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database | quote }}
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.user | quote }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pocket-secrets
+                  key: POSTGRES_PASSWORD
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", {{ .Values.postgres.user | quote }}]
+            initialDelaySeconds: 15
+            periodSeconds: 10
+      volumes:
+        - name: pgdata
+          hostPath:
+            path: {{ .Values.postgres.dataPath }}
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pocket-postgres
+  namespace: pocket
+spec:
+  selector:
+    app: pocket-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# ── Backend ───────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-backend
+  namespace: pocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pocket-backend
+  template:
+    metadata:
+      labels:
+        app: pocket-backend
+    spec:
+      initContainers:
+        - name: wait-postgres
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc pocket-postgres 5432 -w 1 </dev/null; do echo waiting; sleep 3; done']
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.port }}
+          env:
+            - name: PORT
+              value: {{ .Values.backend.port | quote }}
+            - name: STORAGE_PATH
+              value: /data/artifacts
+            - name: ELECTRO_URL
+              value: {{ .Values.electroUrl | quote }}
+            - name: POCKET_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pocket-secrets
+                  key: POCKET_MASTER_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: pocket-secrets
+                  key: DATABASE_URL
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+              memory: {{ .Values.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+              memory: {{ .Values.resources.limits.memory | quote }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.backend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          volumeMounts:
+            - name: artifacts
+              mountPath: /data/artifacts
+      volumes:
+        - name: artifacts
+          hostPath:
+            path: {{ .Values.app.dataPath }}
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pocket-backend
+  namespace: pocket
+spec:
+  selector:
+    app: pocket-backend
+  ports:
+    - port: {{ .Values.backend.port }}
+      targetPort: {{ .Values.backend.port }}
+---
+# ── Frontend ──────────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-frontend
+  namespace: pocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pocket-frontend
+  template:
+    metadata:
+      labels:
+        app: pocket-frontend
+        version: {{ .Values.frontend.image.tag | quote }}
+    spec:
+      initContainers:
+        - name: wait-backend
+          image: busybox:1.36
+          command: ['sh', '-c', 'until nc pocket-backend {{ .Values.backend.port }} -w 1 </dev/null; do echo waiting; sleep 3; done']
+      containers:
+        - name: frontend
+          image: "{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}"
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          ports:
+            - containerPort: 3000
+              hostPort: {{ .Values.service.nodePort }}
+          env:
+            - name: BACKEND_URL
+              value: "http://pocket-backend:{{ .Values.backend.port }}"
+            - name: HOSTNAME
+              value: "0.0.0.0"
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu | quote }}
+              memory: {{ .Values.resources.requests.memory | quote }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu | quote }}
+              memory: {{ .Values.resources.limits.memory | quote }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pocket-frontend
+  namespace: pocket
+spec:
+  selector:
+    app: pocket-frontend
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 3000
+      nodePort: {{ .Values.service.nodePort }}
