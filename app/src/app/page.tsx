@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useToken } from '@/lib/useToken';
 
 type Repo = { id: number; name: string; description: string; repoType: string; artifactCount: number; latestVersion: string; createdAt: string };
 
@@ -12,7 +13,7 @@ export default function Home() {
   const [repos, setRepos]     = useState<Repo[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm]       = useState({ name: '', description: '', repoType: 'generic', isPublic: true });
-  const [token, setToken]     = useState('');
+  const [token, setToken]     = useToken();
   const [err, setErr]         = useState('');
 
   useEffect(() => { fetch('/api/repos').then(r => r.json()).then(setRepos); }, []);

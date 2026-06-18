@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useToken } from '@/lib/useToken';
 
 type Artifact   = { id: number; name: string; version: string; fileName: string; repositoryId: number };
 type OTARelease = { id: number; artifactId: number; artifact: Artifact; deviceType: string; version: string; releaseNotes: string; pushedAt: string | null; createdAt: string };
@@ -16,7 +17,7 @@ export default function OTAPage() {
   const [repos, setRepos]       = useState<{id: number; name: string}[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [token, setToken]       = useState('');
+  const [token, setToken]       = useToken();
   const [pushing, setPushing]   = useState<number | null>(null);
   const [form, setForm] = useState({ artifactId: '', deviceType: 'robot', version: '', releaseNotes: '' });
   const [err, setErr] = useState('');
@@ -50,6 +51,7 @@ export default function OTAPage() {
   }
 
   async function push(id: number) {
+    if (!token) { alert('Enter your API token first'); return; }
     setPushing(id);
     const res = await fetch(`/api/ota/${id}/push`, {
       method: 'POST',
@@ -65,6 +67,22 @@ export default function OTAPage() {
       <div className="section-header">
         <h1>OTA Releases</h1>
         <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>{showForm ? 'Cancel' : '+ New Release'}</button>
+      </div>
+
+      {/* Persistent token bar — always visible */}
+      <div className="card" style={{ marginBottom: 20, padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <label htmlFor="ota-token" style={{ fontSize: '.78rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>API Token</label>
+          <input
+            id="ota-token"
+            type="password"
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            placeholder="X-Pocket-Token (saved in browser)"
+            style={{ flex: 1, background: 'var(--bg)', color: 'var(--text)', border: `1px solid ${token ? 'var(--green)' : 'var(--border)'}`, borderRadius: 6, padding: '6px 12px', fontSize: '.82rem' }}
+          />
+          {token && <span style={{ fontSize: '.75rem', color: 'var(--green)' }}>✓ saved</span>}
+        </div>
       </div>
 
       {showForm && (
@@ -87,10 +105,9 @@ export default function OTAPage() {
             </div>
             <div className="form-row">
               <div className="field"><label>Device Type</label><input value={form.deviceType} onChange={e => setForm(f => ({...f, deviceType: e.target.value}))} placeholder="e.g. robot" /></div>
-              <div className="field"><label>Version</label><input value={form.version} onChange={e => setForm(f => ({...f, version: e.target.value}))} placeholder="e.g. 1.1.0" /></div>
+              <div className="field"><label>Version</label><input value={form.version} onChange={e => setForm(f => ({...f, version: e.target.value}))} placeholder="e.g. 1.2.0" /></div>
             </div>
             <div className="field"><label>Release Notes</label><input value={form.releaseNotes} onChange={e => setForm(f => ({...f, releaseNotes: e.target.value}))} placeholder="What changed?" /></div>
-            <div className="field"><label>API Token</label><input type="password" value={token} onChange={e => setToken(e.target.value)} placeholder="X-Pocket-Token" /></div>
             {err && <p style={{ color: 'var(--red)', fontSize: '.82rem' }}>{err}</p>}
             <div><button type="submit" className="btn btn-primary">Create Release</button></div>
           </form>
@@ -101,39 +118,31 @@ export default function OTAPage() {
         {releases.length === 0 ? (
           <div className="empty">No OTA releases yet.</div>
         ) : (
-          <>
-            {!token && (
-              <div style={{ marginBottom: 14 }}>
-                <input type="password" className="field" style={{ maxWidth: 320, padding: '7px 12px', background: 'var(--bg)', color: 'var(--text)', border: '1px solid var(--border)', borderRadius: 6, fontSize: '.82rem' }}
-                  placeholder="API token for push" value={token} onChange={e => setToken(e.target.value)} />
-              </div>
-            )}
-            <table>
-              <thead><tr><th>Device Type</th><th>Version</th><th>Artifact</th><th>Notes</th><th>Status</th><th>Created</th><th></th></tr></thead>
-              <tbody>
-                {releases.map(r => (
-                  <tr key={r.id}>
-                    <td><code>{r.deviceType}</code></td>
-                    <td><strong>{r.version}</strong></td>
-                    <td style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{r.artifact?.name} @ {r.artifact?.version}</td>
-                    <td style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{r.releaseNotes || '—'}</td>
-                    <td>
-                      {r.pushedAt
-                        ? <span style={{ color: 'var(--green)', fontSize: '.78rem' }}>✓ Pushed {ago(r.pushedAt)}</span>
-                        : <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}>Not pushed</span>
-                      }
-                    </td>
-                    <td style={{ color: 'var(--muted)', fontSize: '.78rem' }}>{ago(r.createdAt)}</td>
-                    <td>
-                      <button className="btn btn-green btn-sm" onClick={() => push(r.id)} disabled={pushing === r.id}>
-                        {pushing === r.id ? '…' : '⚡ Push OTA'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
+          <table>
+            <thead><tr><th>Device Type</th><th>Version</th><th>Artifact</th><th>Notes</th><th>Status</th><th>Created</th><th></th></tr></thead>
+            <tbody>
+              {releases.map(r => (
+                <tr key={r.id}>
+                  <td><code>{r.deviceType}</code></td>
+                  <td><strong>{r.version}</strong></td>
+                  <td style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{r.artifact?.name} @ {r.artifact?.version}</td>
+                  <td style={{ fontSize: '.78rem', color: 'var(--muted)' }}>{r.releaseNotes || '—'}</td>
+                  <td>
+                    {r.pushedAt
+                      ? <span style={{ color: 'var(--green)', fontSize: '.78rem' }}>✓ Pushed {ago(r.pushedAt)}</span>
+                      : <span style={{ color: 'var(--muted)', fontSize: '.78rem' }}>Not pushed</span>
+                    }
+                  </td>
+                  <td style={{ color: 'var(--muted)', fontSize: '.78rem' }}>{ago(r.createdAt)}</td>
+                  <td>
+                    <button className="btn btn-green btn-sm" onClick={() => push(r.id)} disabled={pushing === r.id}>
+                      {pushing === r.id ? '…' : '⚡ Push OTA'}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
     </>

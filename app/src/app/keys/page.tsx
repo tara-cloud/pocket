@@ -1,14 +1,15 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useToken } from '@/lib/useToken';
 
 type APIKey = { id: number; name: string; createdAt: string };
 
 export default function KeysPage() {
-  const [keys, setKeys]       = useState<APIKey[]>([]);
-  const [name, setName]       = useState('');
-  const [master, setMaster]   = useState('');
+  const [keys, setKeys]         = useState<APIKey[]>([]);
+  const [name, setName]         = useState('');
+  const [master, setMaster]     = useToken();
   const [newToken, setNewToken] = useState('');
-  const [err, setErr]         = useState('');
+  const [err, setErr]           = useState('');
 
   async function load() {
     const res = await fetch('/api/keys', { headers: { 'X-Pocket-Token': master } });
