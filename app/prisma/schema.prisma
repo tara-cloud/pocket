@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Repository {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique
+  description String     @default("")
+  repoType    String     @default("generic")
+  isPublic    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  artifacts   Artifact[]
+}
+
+model Artifact {
+  id            Int         @id @default(autoincrement())
+  repository    Repository  @relation(fields: [repositoryId], references: [id])
+  repositoryId  Int
+  name          String
+  version       String
+  fileName      String
+  filePath      String
+  size          BigInt      @default(0)
+  contentType   String      @default("application/octet-stream")
+  checksum      String      @default("")
+  downloadCount Int         @default(0)
+  createdAt     DateTime    @default(now())
+  otaReleases   OTARelease[]
+
+  @@unique([repositoryId, name, version])
+}
+
+model OTARelease {
+  id           Int       @id @default(autoincrement())
+  artifact     Artifact  @relation(fields: [artifactId], references: [id])
+  artifactId   Int
+  deviceType   String
+  version      String
+  releaseNotes String    @default("")
+  pushedAt     DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model APIKey {
+  id        Int      @id @default(autoincrement())
+  name      String
+  keyHash   String   @unique
+  createdAt DateTime @default(now())
+}

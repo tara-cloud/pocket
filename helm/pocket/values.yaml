@@ -1,15 +1,9 @@
-backend:
-  image:
-    repository: pmananthu/pocket-backend
-    tag: "1.0.0"
-    pullPolicy: IfNotPresent
-  port: 8080
+image:
+  repository: pmananthu/pocket
+  tag: "1.0.0"
+  pullPolicy: Always
 
-frontend:
-  image:
-    repository: pmananthu/pocket-frontend
-    tag: "1.0.0"
-    pullPolicy: IfNotPresent
+replicaCount: 1
 
 service:
   type: NodePort
@@ -21,23 +15,20 @@ postgres:
   database: pocket
   user: pocket_user
   password: pocket_17f3a2e91c4b
-  dataPath: /DATA/AppData/pocket/postgres
   storageSize: 2Gi
 
 app:
   dataPath: /DATA/AppData/pocket/artifacts
   storageSize: 5Gi
 
-# Set to a strong secret in production
 masterKey: "change-me-pocket-master-key"
-
-# Electro server URL for OTA push
 electroUrl: "http://192.168.0.107:4000"
+pocketUrl:  "http://192.168.0.107:30600"
 
 resources:
   requests:
     cpu: "100m"
-    memory: "128Mi"
-  limits:
-    cpu: "500m"
     memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "512Mi"

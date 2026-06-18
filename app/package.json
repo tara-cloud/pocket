@@ -1,0 +1,26 @@
+{
+  "name": "pocket",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "migrate": "node migrate.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.0.0",
+    "@types/mime-types": "^3.0.1",
+    "crypto": "^1.0.1",
+    "mime-types": "^3.0.2",
+    "next": "15.3.3",
+    "prisma": "^6.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "typescript": "^5.0.0"
+  }
+}
