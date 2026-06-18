@@ -35,7 +35,7 @@ export default function RepoPage() {
       fetch(`/api/repos/${name}`).then(r => r.json()),
       fetch(`/api/repos/${name}/artifacts`).then(r => r.json()),
     ]);
-    setRepo(r.repo);
+    setRepo(r);
     setArtifacts(Array.isArray(a) ? a : []);
   }
   useEffect(() => { load(); }, [name]);
