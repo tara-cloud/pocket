@@ -13,37 +13,36 @@ function ago(iso: string) {
 }
 
 export default function OTAPage() {
-  const [releases, setReleases] = useState<OTARelease[]>([]);
-  const [repos, setRepos]       = useState<{id: number; name: string}[]>([]);
+  const [releases, setReleases]   = useState<OTARelease[]>([]);
+  const [repos, setRepos]         = useState<{id: number; name: string}[]>([]);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [token, setToken]       = useToken();
-  const [pushing, setPushing]   = useState<number | null>(null);
-  const [form, setForm] = useState({ artifactId: '', deviceType: 'robot', version: '', releaseNotes: '' });
-  const [err, setErr] = useState('');
+  const [showForm, setShowForm]   = useState(false);
+  const [token, setToken]         = useToken();
+  const [pushing, setPushing]     = useState<number | null>(null);
+  const [form, setForm]           = useState({ artifactId: '', deviceType: 'robot', version: '', releaseNotes: '' });
+  const [err, setErr]             = useState('');
 
   async function load() {
-    const headers: Record<string, string> = token ? { 'X-Pocket-Token': token } : {};
     const [r, rp] = await Promise.all([
-      fetch('/api/ota', { headers }).then(r => r.ok ? r.json() : []),
+      fetch('/api/ota').then(r => r.json()),
       fetch('/api/repos').then(r => r.json()),
     ]);
     setReleases(Array.isArray(r) ? r : []);
     setRepos(Array.isArray(rp) ? rp : []);
   }
-  useEffect(() => { load(); }, [token]);
+  useEffect(() => { load(); }, []);
 
   async function loadArtifacts(repoName: string) {
     const a = await fetch(`/api/repos/${repoName}/artifacts`).then(r => r.json());
     setArtifacts(Array.isArray(a) ? a : []);
   }
 
-  async function createRelease(e: React.FormEvent) {
+  async function createRelease(e: React.SyntheticEvent) {
     e.preventDefault(); setErr('');
     const res = await fetch('/api/ota', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Pocket-Token': token },
-      body: JSON.stringify({ ...form, artifactId: parseInt(form.artifactId) }),
+      body: JSON.stringify({ ...form, artifactId: Number.parseInt(form.artifactId) }),
     });
     if (!res.ok) { setErr((await res.json()).error); return; }
     load();
@@ -52,7 +51,6 @@ export default function OTAPage() {
   }
 
   async function push(id: number) {
-    if (!token) { alert('Enter your API token first'); return; }
     setPushing(id);
     const res = await fetch(`/api/ota/${id}/push`, {
       method: 'POST',
@@ -70,45 +68,30 @@ export default function OTAPage() {
         <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>{showForm ? 'Cancel' : '+ New Release'}</button>
       </div>
 
-      {/* Persistent token bar — always visible */}
-      <div className="card" style={{ marginBottom: 20, padding: '12px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <label htmlFor="ota-token" style={{ fontSize: '.78rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>API Token</label>
-          <input
-            id="ota-token"
-            type="password"
-            value={token}
-            onChange={e => setToken(e.target.value)}
-            placeholder="Paste API key (saved in browser)"
-            style={{ flex: 1, background: 'var(--bg)', color: 'var(--text)', border: `1px solid ${token ? 'var(--green)' : 'var(--border)'}`, borderRadius: 6, padding: '6px 12px', fontSize: '.82rem' }}
-          />
-          {token && <span style={{ fontSize: '.75rem', color: 'var(--green)' }}>✓ saved</span>}
-        </div>
-      </div>
-
       {showForm && (
         <div className="card" style={{ marginBottom: 24 }}>
           <h2>Create OTA Release</h2>
           <form onSubmit={createRelease} className="form-group">
             <div className="form-row">
-              <div className="field"><label>Repository</label>
-                <select onChange={e => loadArtifacts(e.target.value)}>
+              <div className="field"><label htmlFor="ota-repo">Repository</label>
+                <select id="ota-repo" onChange={e => loadArtifacts(e.target.value)}>
                   <option value="">Select repo…</option>
                   {repos.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
                 </select>
               </div>
-              <div className="field"><label>Artifact</label>
-                <select value={form.artifactId} onChange={e => setForm(f => ({...f, artifactId: e.target.value}))}>
+              <div className="field"><label htmlFor="ota-artifact">Artifact</label>
+                <select id="ota-artifact" value={form.artifactId} onChange={e => setForm(f => ({...f, artifactId: e.target.value}))}>
                   <option value="">Select artifact…</option>
                   {artifacts.map(a => <option key={a.id} value={a.id}>{a.name} @ {a.version}</option>)}
                 </select>
               </div>
             </div>
             <div className="form-row">
-              <div className="field"><label>Device Type</label><input value={form.deviceType} onChange={e => setForm(f => ({...f, deviceType: e.target.value}))} placeholder="e.g. robot" /></div>
-              <div className="field"><label>Version</label><input value={form.version} onChange={e => setForm(f => ({...f, version: e.target.value}))} placeholder="e.g. 1.2.0" /></div>
+              <div className="field"><label htmlFor="ota-device">Device Type</label><input id="ota-device" value={form.deviceType} onChange={e => setForm(f => ({...f, deviceType: e.target.value}))} placeholder="e.g. robot" /></div>
+              <div className="field"><label htmlFor="ota-version">Version</label><input id="ota-version" value={form.version} onChange={e => setForm(f => ({...f, version: e.target.value}))} placeholder="e.g. 1.2.0" /></div>
             </div>
-            <div className="field"><label>Release Notes</label><input value={form.releaseNotes} onChange={e => setForm(f => ({...f, releaseNotes: e.target.value}))} placeholder="What changed?" /></div>
+            <div className="field"><label htmlFor="ota-notes">Release Notes</label><input id="ota-notes" value={form.releaseNotes} onChange={e => setForm(f => ({...f, releaseNotes: e.target.value}))} placeholder="What changed?" /></div>
+            <div className="field"><label htmlFor="ota-token">API Key</label><input id="ota-token" type="password" value={token} onChange={e => setToken(e.target.value)} placeholder="Paste API key (saved in browser)" required /></div>
             {err && <p style={{ color: 'var(--red)', fontSize: '.82rem' }}>{err}</p>}
             <div><button type="submit" className="btn btn-primary">Create Release</button></div>
           </form>

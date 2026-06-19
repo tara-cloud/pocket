@@ -3,9 +3,7 @@ import { db } from '@/lib/db';
 import { verifyAuth, extractToken } from '@/lib/auth';
 import { safeJson } from '@/lib/serialize';
 
-export async function GET(req: NextRequest) {
-    if (!await verifyAuth(extractToken(req)))
-        return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+export async function GET() {
     const releases = await db.oTARelease.findMany({
         include: { artifact: true },
         orderBy: { createdAt: 'desc' },
