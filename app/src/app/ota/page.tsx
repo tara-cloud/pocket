@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useToken } from '@/lib/useToken';
+import Link from 'next/link';
 
 type Artifact   = { id: number; name: string; version: string; fileName: string; repositoryId: number };
 type OTARelease = { id: number; artifactId: number; artifact: Artifact; deviceType: string; version: string; releaseNotes: string; pushedAt: string | null; createdAt: string };
@@ -68,6 +69,25 @@ export default function OTAPage() {
         <button className="btn btn-primary" onClick={() => setShowForm(s => !s)}>{showForm ? 'Cancel' : '+ New Release'}</button>
       </div>
 
+      {/* API key — shown once at top, persisted in localStorage */}
+      <div className="card" style={{ marginBottom: 20, padding: '12px 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <label htmlFor="ota-token" style={{ fontSize: '.78rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>API Key</label>
+          <input
+            id="ota-token"
+            type="password"
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            placeholder="Paste an API key to create releases or push OTA"
+            style={{ flex: 1, background: 'var(--bg)', color: 'var(--text)', border: `1px solid ${token ? 'var(--green)' : 'var(--border)'}`, borderRadius: 6, padding: '6px 12px', fontSize: '.82rem' }}
+          />
+          {token
+            ? <span style={{ fontSize: '.75rem', color: 'var(--green)' }}>✓ saved</span>
+            : <Link href="/keys" style={{ fontSize: '.75rem', color: 'var(--muted)' }}>Get a key →</Link>
+          }
+        </div>
+      </div>
+
       {showForm && (
         <div className="card" style={{ marginBottom: 24 }}>
           <h2>Create OTA Release</h2>
@@ -91,7 +111,6 @@ export default function OTAPage() {
               <div className="field"><label htmlFor="ota-version">Version</label><input id="ota-version" value={form.version} onChange={e => setForm(f => ({...f, version: e.target.value}))} placeholder="e.g. 1.2.0" /></div>
             </div>
             <div className="field"><label htmlFor="ota-notes">Release Notes</label><input id="ota-notes" value={form.releaseNotes} onChange={e => setForm(f => ({...f, releaseNotes: e.target.value}))} placeholder="What changed?" /></div>
-            <div className="field"><label htmlFor="ota-token">API Key</label><input id="ota-token" type="password" value={token} onChange={e => setToken(e.target.value)} placeholder="Paste API key (saved in browser)" required /></div>
             {err && <p style={{ color: 'var(--red)', fontSize: '.82rem' }}>{err}</p>}
             <div><button type="submit" className="btn btn-primary">Create Release</button></div>
           </form>
