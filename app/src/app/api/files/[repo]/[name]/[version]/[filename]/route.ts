@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { verifyAuth, extractToken } from '@/lib/auth';
 import { absPath } from '@/lib/storage';
 import { createReadStream, statSync } from 'fs';
 import { Readable } from 'stream';
 
-export async function GET(_: NextRequest, { params }: { params: Promise<{ repo: string; name: string; version: string; filename: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ repo: string; name: string; version: string; filename: string }> }) {
+    if (!await verifyAuth(extractToken(req)))
+        return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
     const { repo, name, version, filename } = await params;
 
     const repository = await db.repository.findUnique({ where: { name: repo } });

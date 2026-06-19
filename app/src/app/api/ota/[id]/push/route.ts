@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyAuth } from '@/lib/auth';
+import { verifyAuth, extractToken } from '@/lib/auth';
 import { safeJson } from '@/lib/serialize';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-    if (!await verifyAuth(req.headers.get('x-pocket-token')))
+    if (!await verifyAuth(extractToken(req)))
         return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
     const { id } = await params;
     const release = await db.oTARelease.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: Number.parseInt(id) },
         include: { artifact: { include: { repository: true } } },
     });
     if (!release) return NextResponse.json({ error: 'not found' }, { status: 404 });

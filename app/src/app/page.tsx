@@ -57,7 +57,7 @@ export default function Home() {
               </div>
             </div>
             <div className="field"><label>Description</label><input value={form.description} onChange={e => setForm(f => ({...f, description: e.target.value}))} placeholder="Optional" /></div>
-            <div className="field"><label>API Token (X-Pocket-Token)</label><input type="password" value={token} onChange={e => setToken(e.target.value)} required placeholder="Master key or API key" /></div>
+            <div className="field"><label htmlFor="repo-token">API Key</label><input id="repo-token" type="password" value={token} onChange={e => setToken(e.target.value)} required placeholder="Paste an API key from the Keys page" /></div>
             {err && <p style={{ color: 'var(--red)', fontSize: '.82rem' }}>{err}</p>}
             <div><button type="submit" className="btn btn-primary">Create</button></div>
           </form>

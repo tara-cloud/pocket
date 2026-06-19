@@ -23,14 +23,15 @@ export default function OTAPage() {
   const [err, setErr] = useState('');
 
   async function load() {
+    const headers: Record<string, string> = token ? { 'X-Pocket-Token': token } : {};
     const [r, rp] = await Promise.all([
-      fetch('/api/ota').then(r => r.json()),
+      fetch('/api/ota', { headers }).then(r => r.ok ? r.json() : []),
       fetch('/api/repos').then(r => r.json()),
     ]);
     setReleases(Array.isArray(r) ? r : []);
     setRepos(Array.isArray(rp) ? rp : []);
   }
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [token]);
 
   async function loadArtifacts(repoName: string) {
     const a = await fetch(`/api/repos/${repoName}/artifacts`).then(r => r.json());
@@ -78,7 +79,7 @@ export default function OTAPage() {
             type="password"
             value={token}
             onChange={e => setToken(e.target.value)}
-            placeholder="X-Pocket-Token (saved in browser)"
+            placeholder="Paste API key (saved in browser)"
             style={{ flex: 1, background: 'var(--bg)', color: 'var(--text)', border: `1px solid ${token ? 'var(--green)' : 'var(--border)'}`, borderRadius: 6, padding: '6px 12px', fontSize: '.82rem' }}
           />
           {token && <span style={{ fontSize: '.75rem', color: 'var(--green)' }}>✓ saved</span>}

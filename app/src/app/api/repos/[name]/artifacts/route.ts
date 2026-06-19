@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyAuth } from '@/lib/auth';
+import { verifyAuth, extractToken } from '@/lib/auth';
 import { saveFile } from '@/lib/storage';
 import { lookup } from 'mime-types';
 import { safeJson } from '@/lib/serialize';
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ name
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ name: string }> }) {
-    if (!await verifyAuth(req.headers.get('x-pocket-token')))
+    if (!await verifyAuth(extractToken(req)))
         return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
     const { name } = await params;

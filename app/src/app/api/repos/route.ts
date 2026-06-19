@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyAuth } from '@/lib/auth';
+import { verifyAuth, extractToken } from '@/lib/auth';
 
 export async function GET() {
     const repos = await db.repository.findMany({ orderBy: { createdAt: 'desc' } });
@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    if (!await verifyAuth(req.headers.get('x-pocket-token')))
+    if (!await verifyAuth(extractToken(req)))
         return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
     const body = await req.json();

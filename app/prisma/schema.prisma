@@ -47,8 +47,10 @@ model OTARelease {
 }
 
 model APIKey {
-  id        Int      @id @default(autoincrement())
-  name      String
-  keyHash   String   @unique
-  createdAt DateTime @default(now())
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String    @default("")
+  keyHash     String    @unique
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
 }
