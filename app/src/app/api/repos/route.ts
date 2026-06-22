@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
             description: body.description ?? '',
             repoType:    body.repoType ?? 'generic',
             isPublic:    body.isPublic ?? true,
+            tags:        Array.isArray(body.tags) ? body.tags : [],
+            keepLatest:  typeof body.keepLatest === 'number' ? body.keepLatest : 0,
         },
     });
     return NextResponse.json(repo, { status: 201 });

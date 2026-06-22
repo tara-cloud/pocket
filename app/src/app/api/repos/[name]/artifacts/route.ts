@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyAuth, extractToken } from '@/lib/auth';
-import { saveFile } from '@/lib/storage';
+import { saveFile, deleteFile } from '@/lib/storage';
 import { lookup } from 'mime-types';
 import { safeJson } from '@/lib/serialize';
 
@@ -43,5 +43,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ nam
     const artifact = await db.artifact.create({
         data: { repositoryId: repo.id, name: artName, version, fileName: file.name, filePath: relPath, size, contentType: ct, checksum },
     });
+
+    // Enforce keepLatest retention rule
+    if (repo.keepLatest > 0) {
+        const all = await db.artifact.findMany({
+            where: { repositoryId: repo.id, name: artName },
+            orderBy: { createdAt: 'desc' },
+        });
+        const toDelete = all.slice(repo.keepLatest);
+        for (const old of toDelete) {
+            await deleteFile(old.filePath);
+            await db.artifact.delete({ where: { id: old.id } });
+        }
+    }
+
     return NextResponse.json(safeJson(artifact), { status: 201 });
 }

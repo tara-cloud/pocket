@@ -120,8 +120,8 @@ spec:
               value: "production"
             - name: STORAGE_PATH
               value: /data/artifacts
-            - name: ELECTRO_URL
-              value: {{ .Values.electroUrl | quote }}
+            - name: ELECTRON_URL
+              value: {{ .Values.electronUrl | quote }}
             - name: POCKET_URL
               value: {{ .Values.pocketUrl | quote }}
             - name: POCKET_MASTER_KEY

@@ -17,7 +17,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ n
     const { id } = await params;
     const a = await db.artifact.findUnique({ where: { id: Number.parseInt(id) } });
     if (!a) return NextResponse.json({ error: 'not found' }, { status: 404 });
-    deleteFile(a.filePath);
+    try { deleteFile(a.filePath); } catch {
+        return NextResponse.json({ error: 'failed to remove file from storage' }, { status: 500 });
+    }
     await db.artifact.delete({ where: { id: a.id } });
     return NextResponse.json({ ok: true });
 }

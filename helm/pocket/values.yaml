@@ -22,7 +22,7 @@ app:
   storageSize: 5Gi
 
 masterKey: "change-me-pocket-master-key"
-electroUrl: "http://192.168.0.107:4000"
+electronUrl: "http://192.168.0.107:30400"
 pocketUrl:  "http://192.168.0.107:30600"
 
 resources:

@@ -38,5 +38,7 @@ export async function saveFile(
 }
 
 export function deleteFile(relPath: string) {
-    try { unlinkSync(absPath(relPath)); } catch { /* ignore */ }
+    try { unlinkSync(absPath(relPath)); } catch (e: any) {
+        if (e?.code !== 'ENOENT') throw e;
+    }
 }

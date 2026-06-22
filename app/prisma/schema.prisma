@@ -13,6 +13,8 @@ model Repository {
   description String     @default("")
   repoType    String     @default("generic")
   isPublic    Boolean    @default(true)
+  tags        String[]   @default([])
+  keepLatest  Int        @default(0)
   createdAt   DateTime   @default(now())
   artifacts   Artifact[]
 }
@@ -30,20 +32,7 @@ model Artifact {
   checksum      String      @default("")
   downloadCount Int         @default(0)
   createdAt     DateTime    @default(now())
-  otaReleases   OTARelease[]
-
   @@unique([repositoryId, name, version])
-}
-
-model OTARelease {
-  id           Int       @id @default(autoincrement())
-  artifact     Artifact  @relation(fields: [artifactId], references: [id])
-  artifactId   Int
-  deviceType   String
-  version      String
-  releaseNotes String    @default("")
-  pushedAt     DateTime?
-  createdAt    DateTime  @default(now())
 }
 
 model APIKey {

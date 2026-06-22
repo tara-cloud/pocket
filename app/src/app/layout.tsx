@@ -13,7 +13,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/" className="nav-brand">📦 Pocket</Link>
             <div className="nav-links">
               <Link href="/">Repositories</Link>
-              <Link href="/ota">OTA Releases</Link>
               <Link href="/keys">API Keys</Link>
             </div>
           </div>
