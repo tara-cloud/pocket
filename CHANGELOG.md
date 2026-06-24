@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.13] — 2026-06-25
+
+### Changed
+
+- Artifact storage path changed from `/DATA/AppData/pocket/artifacts` (NVMe SSD) to `/HDD/AppData/pocket/artifacts` (1.8 TB HDD at `/dev/sdb1`)
+
 ## [1.1.12] — 2026-06-25
 
 ### Fixed
