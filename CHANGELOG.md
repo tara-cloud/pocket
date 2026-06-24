@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.9] — 2026-06-25
+
+### Fixed
+
+- Added "Setup kubeconfig" step in `helm-upgrade` job: copies `/etc/rancher/k3s/k3s.yaml` to `~/.kube/config` with correct ownership via `sudo`, so the runner user can read it without requiring world-readable permissions on the k3s config file.
+
 ## [1.1.8] — 2026-06-25
 
 ### Fixed

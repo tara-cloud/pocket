@@ -115,6 +115,13 @@ jobs:
         with:
           ref: ${{ needs.release.outputs.tag }}
 
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+          sudo chown $(id -u):$(id -g) ~/.kube/config
+          chmod 600 ~/.kube/config
+
       - name: Adopt namespace for Helm
         run: |
           kubectl create namespace pocket --dry-run=client -o yaml | kubectl apply -f -
