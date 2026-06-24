@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] — 2026-06-25
+
+### Changed
+
+- Artifact downloads (`GET /api/files/...`) are now public — no API key required. API key auth is still enforced on upload (`POST /api/repos/.../artifacts`), repo/key management, and delete operations. The `/api/repos/.../artifacts/latest` version-check endpoint was already public.
+
 ## [1.1.16] — 2026-06-25
 
 ### Fixed
