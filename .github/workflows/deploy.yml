@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  release:
+    types: [published]
+
+env:
+  IMAGE: pmananthu/pocket
+
+jobs:
+  docker:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version tag
+        id: meta
+        run: |
+          # Strip leading 'v' from the release tag (v1.3.4 → 1.3.4)
+          TAG="${GITHUB_REF_NAME#v}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: app
+          file: app/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Remove local image
+        run: docker rmi ${{ env.IMAGE }}:${{ steps.meta.outputs.tag }} ${{ env.IMAGE }}:latest || true
+
+  helm-upgrade:
+    name: Helm Upgrade on Pi
+    runs-on: ubuntu-latest
+    needs: docker
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install pocket ./helm/pocket \
+            --namespace pocket \
+            --create-namespace \
+            --set image.tag=${{ needs.docker.outputs.tag }} \
+            --set masterKey="${{ secrets.POCKET_MASTER_KEY }}" \
+            --wait \
+            --timeout 5m
