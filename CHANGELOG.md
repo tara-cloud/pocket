@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.10] — 2026-06-25
+
+### Fixed
+
+- Added "Adopt pre-existing resources for Helm" step: iterates over PVCs, PVs, StatefulSets, Deployments, Services, ConfigMaps and Secrets in the `pocket` namespace and stamps each with the required Helm ownership label and annotations. Fixes `pocket-pgdata` PVC (and any other manually-created resources) blocking `helm upgrade --install`.
+
 ## [1.1.9] — 2026-06-25
 
 ### Fixed

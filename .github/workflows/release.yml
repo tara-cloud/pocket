@@ -131,6 +131,18 @@ jobs:
             meta.helm.sh/release-namespace=pocket \
             --overwrite
 
+      - name: Adopt pre-existing resources for Helm
+        run: |
+          for resource in pvc pv statefulset deployment service configmap secret; do
+            kubectl get $resource -n pocket -o name 2>/dev/null | while read name; do
+              kubectl label $name -n pocket app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+              kubectl annotate $name -n pocket \
+                meta.helm.sh/release-name=pocket \
+                meta.helm.sh/release-namespace=pocket \
+                --overwrite 2>/dev/null || true
+            done
+          done
+
       - name: Helm upgrade
         run: |
           helm upgrade --install pocket ./helm/pocket \
