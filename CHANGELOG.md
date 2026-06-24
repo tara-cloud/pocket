@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.14] — 2026-06-25
+
+### Fixed
+
+- Docker build now targets `linux/amd64,linux/arm64` platforms using QEMU. Previously only `amd64` was built, causing `no match for platform in manifest` on the Pi (ARM64).
+
 ## [1.1.13] — 2026-06-25
 
 ### Changed
