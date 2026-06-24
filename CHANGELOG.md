@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.7] — 2026-06-25
+
+### Fixed
+
+- `helm-upgrade` job now runs on a `self-hosted` runner (the Pi itself) instead of `ubuntu-latest`. GitHub cloud runners cannot reach the private LAN k3s cluster at `192.168.0.107`. Running on the Pi means Helm talks to k3s via `localhost` with no kubeconfig or network tunnelling needed. Removed `setup-kubectl`, `setup-helm`, and kubeconfig secret steps — Helm and kubectl are expected to be installed on the Pi runner.
+
 ## [1.1.6] — 2026-06-25
 
 ### Fixed
