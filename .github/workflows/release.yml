@@ -60,7 +60,7 @@ jobs:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
     needs: release
-    if: needs.release.outputs.already_exists == 'false'
+    if: needs.release.outputs.already_exists != 'true'
     outputs:
       version: ${{ steps.meta.outputs.version }}
 
@@ -107,7 +107,7 @@ jobs:
     name: Helm Upgrade on Pi
     runs-on: ubuntu-latest
     needs: [release, docker]
-    if: needs.release.outputs.already_exists == 'false'
+    if: needs.release.outputs.already_exists != 'true'
 
     steps:
       - name: Checkout release tag

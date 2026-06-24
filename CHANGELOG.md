@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.6] — 2026-06-25
+
+### Fixed
+
+- `docker` and `helm-upgrade` jobs were being skipped because `needs.release.outputs.already_exists` is an empty string (not `'false'`) when the output is never explicitly set. Changed condition from `== 'false'` to `!= 'true'` so an empty/unset value passes correctly.
+
 ## [1.1.5] — 2026-06-24
 
 ### Fixed
