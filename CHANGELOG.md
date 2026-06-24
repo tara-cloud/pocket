@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.15] — 2026-06-25
+
+### Changed
+
+- Docker build now targets `linux/arm64` only (removed `linux/amd64`); the Pi is ARM64 and amd64 is not needed, so build time is halved.
+
 ## [1.1.14] — 2026-06-25
 
 ### Fixed
