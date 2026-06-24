@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.16] — 2026-06-25
+
+### Fixed
+
+- Removed `hostPort` from the pocket container spec. `hostPort` pins a physical port on the node to a single pod, causing rolling updates to deadlock — the new pod cannot schedule until the old pod releases the port. The `NodePort` Service already exposes port 30600 externally, so `hostPort` was redundant.
+
 ## [1.1.15] — 2026-06-25
 
 ### Changed
