@@ -143,6 +143,12 @@ jobs:
             done
           done
 
+      - name: Recreate deployments to resolve env var conflicts
+        run: |
+          kubectl delete deployment pocket pocket-postgres -n pocket --ignore-not-found=true
+          kubectl wait --for=delete pod -l app=pocket -n pocket --timeout=60s 2>/dev/null || true
+          kubectl wait --for=delete pod -l app=pocket-postgres -n pocket --timeout=60s 2>/dev/null || true
+
       - name: Helm upgrade
         run: |
           helm upgrade --install pocket ./helm/pocket \

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.12] — 2026-06-25
+
+### Fixed
+
+- Added "Recreate deployments" step before `helm upgrade`: deletes `pocket` and `pocket-postgres` Deployments and waits for pods to terminate before Helm recreates them. Fixes the `valueFrom`/`value` conflict error where the existing Deployments had env vars set differently to the Helm chart template (PVCs and data are unaffected).
+
 ## [1.1.11] — 2026-06-25
 
 ### Changed
