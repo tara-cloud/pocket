@@ -18,7 +18,7 @@ postgres:
   storageSize: 2Gi
 
 app:
-  dataPath: /DATA/AppData/pocket/artifacts
+  dataPath: /HDD/AppData/pocket/artifacts
   storageSize: 5Gi
 
 masterKey: "change-me-pocket-master-key"
