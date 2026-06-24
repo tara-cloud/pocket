@@ -115,6 +115,15 @@ jobs:
         with:
           ref: ${{ needs.release.outputs.tag }}
 
+      - name: Adopt namespace for Helm
+        run: |
+          kubectl create namespace pocket --dry-run=client -o yaml | kubectl apply -f -
+          kubectl label namespace pocket app.kubernetes.io/managed-by=Helm --overwrite
+          kubectl annotate namespace pocket \
+            meta.helm.sh/release-name=pocket \
+            meta.helm.sh/release-namespace=pocket \
+            --overwrite
+
       - name: Helm upgrade
         run: |
           helm upgrade --install pocket ./helm/pocket \

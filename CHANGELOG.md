@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.8] — 2026-06-25
+
+### Fixed
+
+- Added "Adopt namespace for Helm" step before `helm upgrade`: labels and annotates the existing `pocket` namespace with the required Helm ownership metadata (`app.kubernetes.io/managed-by`, `meta.helm.sh/release-name`, `meta.helm.sh/release-namespace`). Helm refuses to install into a namespace it didn't create unless these are present.
+
 ## [1.1.7] — 2026-06-25
 
 ### Fixed
