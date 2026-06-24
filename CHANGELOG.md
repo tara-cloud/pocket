@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4] — 2026-06-24
+
+### Fixed
+
+- Deploy workflow now explicitly checks out the release tag (`github.event.release.tag_name`) in both the `docker` and `helm-upgrade` jobs, so builds always use the correct source and Helm chart version
+- Tag extraction now reads from `github.event.release.tag_name` instead of `GITHUB_REF_NAME` for reliability
+- Image cleanup splits into separate `docker rmi` calls per tag and adds `docker image prune -f` to remove dangling layers
+
 ## [1.1.3] — 2026-06-24
 
 ### Added
