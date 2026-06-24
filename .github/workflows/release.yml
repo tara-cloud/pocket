@@ -115,6 +115,13 @@ jobs:
         with:
           ref: ${{ needs.release.outputs.tag }}
 
+      - name: Setup kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+          sudo chown $(id -u):$(id -g) ~/.kube/config
+          chmod 600 ~/.kube/config
+
       - name: Adopt namespace for Helm
         run: |
           kubectl create namespace pocket --dry-run=client -o yaml | kubectl apply -f -
@@ -123,6 +130,18 @@ jobs:
             meta.helm.sh/release-name=pocket \
             meta.helm.sh/release-namespace=pocket \
             --overwrite
+
+      - name: Adopt pre-existing resources for Helm
+        run: |
+          for resource in pvc pv statefulset deployment service configmap secret; do
+            kubectl get $resource -n pocket -o name 2>/dev/null | while read name; do
+              kubectl label $name -n pocket app.kubernetes.io/managed-by=Helm --overwrite 2>/dev/null || true
+              kubectl annotate $name -n pocket \
+                meta.helm.sh/release-name=pocket \
+                meta.helm.sh/release-namespace=pocket \
+                --overwrite 2>/dev/null || true
+            done
+          done
 
       - name: Helm upgrade
         run: |
