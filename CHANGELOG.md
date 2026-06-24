@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5] — 2026-06-24
+
+### Fixed
+
+- Merged `deploy.yml` into `release.yml` as a single workflow triggered on push to `main`; `deploy.yml` is deleted. Previously, `deploy.yml` (`release: published` trigger) never fired because GitHub blocks workflow-to-workflow triggers when the same `GITHUB_TOKEN` creates the release.
+- `docker` and `helm-upgrade` jobs now depend on the `release` job via `needs`, run only when the tag is new, and checkout the exact release tag from the `release` job's output.
+
 ## [1.1.4] — 2026-06-24
 
 ### Fixed
