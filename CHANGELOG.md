@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.11] — 2026-06-25
+
+### Changed
+
+- Updated all GitHub Actions to Node.js 24-native versions: `actions/checkout@v7`, `actions/setup-node@v6`, `softprops/action-gh-release@v3`, `docker/login-action@v4`, `docker/setup-buildx-action@v4`, `docker/build-push-action@v7`
+
 ## [1.1.10] — 2026-06-25
 
 ### Fixed
